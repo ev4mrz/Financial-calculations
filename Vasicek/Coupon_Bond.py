@@ -20,8 +20,6 @@ frequency = 4
 notional = 100
 t=0
 
-
-
 def B_vasicek(t, T, gamma):
     """Calculate B(t,T) = (1 - exp(-gamma*(T-t))) / gamma"""
     tau = T - t
