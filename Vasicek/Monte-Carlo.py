@@ -40,55 +40,100 @@ def simulate_short_rate_euler(r0, gamma_star, r_star, sigma, T, delta, J):
     return r
 
 
-def simulate_and_price_bond(r0, gamma_star, r_star, sigma, delta, J, maturity, coupon_rate, notional, frequency):
-    """Run Vasicek Euler simulation and compute bond price statistics."""
+def simulate_and_price_bond(r0, gamma_star, r_star, sigma, delta, J, maturity, 
+                            coupon_rate, notional, frequency):
     maturities = np.arange(maturity, 0, -1/frequency)[::-1]
     n_steps = int(maturity / delta)
     time_grid = np.linspace(0, maturity, n_steps + 1)
     
     print(f"\nEULER SIMULATION: δ={delta}, J={J}")
     
-    # Simulate short-rate paths
     rate_paths = simulate_short_rate_euler(r0, gamma_star, r_star, sigma, maturity, delta, J)
-    
-    # Compute bond prices for each simulated path
-    bond_prices = []
-    for j in range(J):
-        rates = rate_paths[j, :]
-        discount_factors_sim = []
-        for t_pay in maturities:
-            n_steps_to_payment = int(t_pay / delta)
-            integral = np.trapz(rates[:n_steps_to_payment + 1], dx=delta)
-            df = np.exp(-integral)
-            discount_factors_sim.append(df)
-        bond_price = price_coupon_bond(np.array(discount_factors_sim),
-                                       maturity, coupon_rate, notional, frequency)
-        bond_prices.append(bond_price)
 
-    bond_prices = np.array(bond_prices)
-    avg_price = np.mean(bond_prices)
-    std_price = np.std(bond_prices, ddof=1)
+    discount_factors_avg = []
+    discount_factors_per_path = np.zeros((J, len(maturities)))
+    
+    for idx, t_pay in enumerate(maturities):
+        n_steps_to_payment = int(t_pay / delta)
+        integral_paths = np.sum(rate_paths[:, :n_steps_to_payment+1], axis=1) * delta
+        df_paths = np.exp(-integral_paths)
+        discount_factors_avg.append(np.mean(df_paths))
+        discount_factors_per_path[:, idx] = df_paths
+    
+    discount_factors_avg = np.array(discount_factors_avg)
+    
+    bond_price_avg = price_coupon_bond(discount_factors_avg, maturity, coupon_rate, notional, frequency)
+    
+    bond_prices_per_path = np.zeros(J)
+    for j in range(J):
+        bond_prices_per_path[j] = price_coupon_bond(discount_factors_per_path[j, :], 
+                                                    maturity, coupon_rate, notional, frequency)
+    
+    avg_price = bond_price_avg
+    std_price = np.sqrt(np.sum((bond_prices_per_path - avg_price)**2) / J)
     se_price = std_price / np.sqrt(J)
     ci_price = 1.96 * se_price
-
+    
     print(f"Average bond price: ${avg_price:.4f}")
     print(f"Standard error: ${se_price:.4f}")
-    print(f"95% CI: [${avg_price - ci_price:.4f}, ${avg_price + ci_price:.4f}]")
+    print(f"95% confidence interval: [${avg_price - ci_price:.4f}, ${avg_price + ci_price:.4f}]")
+    
 
-    # Stats on short rate paths
     avg_rates = np.mean(rate_paths, axis=0)
     std_rates = np.std(rate_paths, axis=0)
     ci_lower = avg_rates - 1.96 * std_rates / np.sqrt(J)
     ci_upper = avg_rates + 1.96 * std_rates / np.sqrt(J)
-
+    
     return {
         "avg_price": avg_price,
         "ci_price": ci_price,
         "avg_rates": avg_rates,
         "ci_lower": ci_lower,
         "ci_upper": ci_upper,
-        "time_grid": time_grid
+        "time_grid": time_grid,
+        "discount_factors_avg": discount_factors_avg
     }
+
+def simulate_and_price_ZCB(r0, gamma_star, r_star, sigma, delta, J, maturity, notional):
+    n_steps = int(maturity / delta)
+    time_grid = np.linspace(0, maturity, n_steps + 1)
+    
+    print(f"\nEULER SIMULATION: δ={delta}, J={J}")
+    
+    rate_paths = simulate_short_rate_euler(r0, gamma_star, r_star, sigma, maturity, delta, J)
+
+    integral_paths = np.sum(rate_paths[:, :], axis=1) * delta
+    df_paths = np.exp(-integral_paths)
+    
+    df_avg = np.mean(df_paths)
+    
+    avg_price = notional * df_avg
+    
+    # Standard error and confidence interval
+    std_price = np.sqrt(np.sum((df_paths*notional - avg_price)**2) / J)
+    se_price = std_price / np.sqrt(J)
+    ci_price = 1.96 * se_price
+    
+    print(f"Average ZCB price: ${avg_price:.4f}")
+    print(f"Standard error: ${se_price:.4f}")
+    print(f"95% confidence interval: [${avg_price - ci_price:.4f}, ${avg_price + ci_price:.4f}]")
+    
+    # Short rate stats
+    avg_rates = np.mean(rate_paths, axis=0)
+    std_rates = np.std(rate_paths, axis=0)
+    ci_lower = avg_rates - 1.96 * std_rates / np.sqrt(J)
+    ci_upper = avg_rates + 1.96 * std_rates / np.sqrt(J)
+    
+    return {
+        "avg_price": avg_price,
+        "ci_price": ci_price,
+        "avg_rates": avg_rates,
+        "ci_lower": ci_lower,
+        "ci_upper": ci_upper,
+        "time_grid": time_grid,
+        "discount_factors_avg": df_avg
+    }
+
 
 def theoretical_mean(r0, gamma_star, r_star, t):
     """Calcule E^Q[r(t)]."""
@@ -104,9 +149,11 @@ J_values = [100, 1000, 10000]
 results = {}
 
 for J in J_values:
-    results[J] = simulate_and_price_bond(r0, gamma_star, r_star, sigma, delta=delta, J=J, 
-                                         maturity=maturity, coupon_rate=coupon_rate, 
+    results[J] = simulate_and_price_bond(r0, gamma_star, r_star, sigma, delta=delta, J=J, maturity=maturity, coupon_rate=coupon_rate, 
                                          notional=notional, frequency=frequency)
+
+#for J in J_values:
+#    results[J] = simulate_and_price_ZCB(r0, gamma_star, r_star, sigma, delta, J, maturity, notional)
 
 
 # Plot 

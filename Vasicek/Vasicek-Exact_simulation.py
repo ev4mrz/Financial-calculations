@@ -4,10 +4,14 @@ import matplotlib
 matplotlib.rcParams['font.family'] = 'sans-serif'
 matplotlib.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
 
+# if gamma = 0 => Ho-lee without drift
+# a_star = gamma_star(r_star - r)
+# b = sigma
+
 # Vasicek parameters
-gamma_star = 0.55
-r_star = 0.04
-sigma = 0.045
+gamma_star = 0.55 # speed of mean reversion
+r_star = 0.04 # long term mean
+sigma = 0.045 # amplitute of the short rate volatility>
 r0 = 0.08
 
 # Time horizon

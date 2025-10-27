@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+# if gamma*r_star > apha/2 interest rate never negative
+
 # Vasicek model parameters
-gamma = 0.4653     
+gamma_star = 0.4653     
 r_star = 0.0634    
 sigma = 0.0221  
 alpha = 0.1 
