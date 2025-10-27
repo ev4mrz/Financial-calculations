@@ -94,7 +94,7 @@ def theoretical_mean(r0, gamma_star, r_star, t):
     """Calcule E^Q[r(t)]."""
     return r_star + (r0 - r_star) * np.exp(-gamma_star * t)
  
-# np.random.seed(42)
+np.random.seed(42)
 
 #for J in [100, 1000, 10000]:
 #    simulate_and_price_bond(r0, gamma_star, r_star, sigma, delta=delta, J=J, maturity=maturity,
