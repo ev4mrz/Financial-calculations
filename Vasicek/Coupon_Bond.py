@@ -2,14 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Vasicek Parameters
-gamma_star = 0.528009
-r_star = 0.102779
-sigma = 0.153996
-r0 = 0.06
+
+#gamma_star = 0.486332
+#r_star = 0.103604
+#sigma = 0.144686
+#r0 = 0.06
+
+gamma_star = 0.55
+r_star = 0.04
+sigma = 0.045
+r0 = 0.08
 
 # Bond parameters
 coupon_rate = 0.08
-maturity = 8
+maturity = 10
 frequency = 4 
 notional = 100
 t=0

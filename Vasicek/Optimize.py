@@ -61,7 +61,7 @@ def objective(params, maturities, market_prices, r0):
     return sse
 
 # Optimization
-x0 = [0.3, 0.07, 0.01]
+x0 = [0.4653, 0.0634, 0.0221]
 result = minimize(objective, x0, args=(maturities, market_prices, r0),
                  method='BFGS', 
                  options={'maxiter': 10000, 'xatol': 1e-8, 'fatol': 1e-8})
@@ -72,3 +72,42 @@ print(f"γ (gamma)    = {gamma_opt:.6f}")
 print(f"r* (r_star)  = {r_star_opt:.6f}")
 print(f"σ (sigma)    = {sigma_opt:.6f}")
 print(f"r₀ (r0)      = {r0:.6f}")
+
+# Create smooth curves for plotting
+maturities_smooth = np.linspace(0.25, 9, 200)
+model_prices_smooth = np.array([
+    vasicek_price(0, T, gamma_opt, r_star_opt, sigma_opt, r0)
+    for T in maturities_smooth
+])
+model_yields_smooth = -np.log(model_prices_smooth) / maturities_smooth
+
+
+# Plots
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Plot 1: ZCB Prices
+ax1 = axes[0]
+ax1.plot(maturities, market_prices, 'o', label='Market ZCB Prices', 
+         markersize=6, color='blue', alpha=0.7)
+ax1.plot(maturities_smooth, model_prices_smooth, '-', 
+         label='Vasicek Model', linewidth=2, color='red')
+ax1.set_xlabel('Maturity (years)', fontsize=11)
+ax1.set_ylabel('Zero-Coupon Bond Price', fontsize=11)
+ax1.set_title('ZCB Prices: Market vs Vasicek Model', fontsize=12, fontweight='bold')
+ax1.legend(fontsize=10)
+ax1.grid(True, alpha=0.3)
+
+# Plot 2: Yield Curves
+ax2 = axes[1]
+ax2.plot(maturities, yields * 100, 'o', label='Market Yields', 
+         markersize=6, color='blue', alpha=0.7)
+ax2.plot(maturities_smooth, model_yields_smooth * 100, '-', 
+         label='Vasicek Model', linewidth=2, color='red')
+ax2.set_xlabel('Maturity (years)', fontsize=11)
+ax2.set_ylabel('Continuously Compounded Yield (%)', fontsize=11)
+ax2.set_title('Yield Curves: Market vs Vasicek Model', fontsize=12, fontweight='bold')
+ax2.legend(fontsize=10)
+ax2.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()

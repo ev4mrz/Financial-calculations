@@ -45,7 +45,6 @@ payment_time = payment_time[::-1]
 
 payment_yields = np.interp(payment_time, maturities, yields)
 
-print(payment_time)
 discount_factors = np.exp(-payment_yields * payment_time)
 
 print( price_coupon_bond(discount_factors, maturity,
