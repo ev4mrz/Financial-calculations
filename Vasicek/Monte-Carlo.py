@@ -72,17 +72,17 @@ def simulate_and_price_bond(r0, gamma_star, r_star, sigma, delta, J, maturity,
     avg_price = bond_price_avg
     std_price = np.sqrt(np.sum((bond_prices_per_path - avg_price)**2) / J)
     se_price = std_price / np.sqrt(J)
-    ci_price = 1.96 * se_price
+    ci_price = 2*se_price
     
     print(f"Average bond price: ${avg_price:.4f}")
     print(f"Standard error: ${se_price:.4f}")
     print(f"95% confidence interval: [${avg_price - ci_price:.4f}, ${avg_price + ci_price:.4f}]")
-    
 
     avg_rates = np.mean(rate_paths, axis=0)
-    std_rates = np.std(rate_paths, axis=0)
-    ci_lower = avg_rates - 1.96 * std_rates / np.sqrt(J)
-    ci_upper = avg_rates + 1.96 * std_rates / np.sqrt(J)
+    std_price = np.sqrt(np.sum((rate_paths - avg_rates)**2) / J)
+    se_rates = std_price / np.sqrt(J)
+    ci_lower = avg_rates - 2 * se_rates / np.sqrt(J)
+    ci_upper = avg_rates + 1.96 * se_rates / np.sqrt(J)
     
     return {
         "avg_price": avg_price,
@@ -112,7 +112,7 @@ def simulate_and_price_ZCB(r0, gamma_star, r_star, sigma, delta, J, maturity, no
     # Standard error and confidence interval
     std_price = np.sqrt(np.sum((df_paths*notional - avg_price)**2) / J)
     se_price = std_price / np.sqrt(J)
-    ci_price = 1.96 * se_price
+    ci_price = 2*se_price
     
     print(f"Average ZCB price: ${avg_price:.4f}")
     print(f"Standard error: ${se_price:.4f}")
@@ -120,17 +120,18 @@ def simulate_and_price_ZCB(r0, gamma_star, r_star, sigma, delta, J, maturity, no
     
     # Short rate stats
     avg_rates = np.mean(rate_paths, axis=0)
-    std_rates = np.std(rate_paths, axis=0)
-    ci_lower = avg_rates - 1.96 * std_rates / np.sqrt(J)
-    ci_upper = avg_rates + 1.96 * std_rates / np.sqrt(J)
+    std_price = np.sqrt(np.sum((rate_paths - avg_rates)**2) / J)
+    se_rates = std_price / np.sqrt(J)
+    ci_lower = avg_rates - 2 * se_rates / np.sqrt(J)
+    ci_upper = avg_rates + 2 * se_rates / np.sqrt(J)
     
     return {
         "avg_price": avg_price,
         "ci_price": ci_price,
         "avg_rates": avg_rates,
+        "time_grid": time_grid,
         "ci_lower": ci_lower,
         "ci_upper": ci_upper,
-        "time_grid": time_grid,
         "discount_factors_avg": df_avg
     }
 
