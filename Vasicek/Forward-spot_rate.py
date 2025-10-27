@@ -21,6 +21,13 @@ def A_vasicek(t, T, gamma_star, r_star, sigma):
     term2 = -sigma**2 * B**2 / (4 * gamma_star)
     return term1 + term2
 
+# Spot
+
+def discount_factor(t, T, gamma, r_star, sigma, r0):
+    """discount factor Vasicek: Z(t,T) = exp(A(t,T) - B(t,T)*r(t))"""
+    A = A_vasicek(t, T, gamma, r_star, sigma)
+    B = B_vasicek(t, T, gamma)
+    return np.exp(A - B * r0)
 
 def spot_rate(t, T, r0, gamma, r_star, sigma):
     """Calculate continuously compounded spot rate r(t,T)"""
@@ -30,6 +37,8 @@ def spot_rate(t, T, r0, gamma, r_star, sigma):
     B = B_vasicek(t, T, gamma)
     A = A_vasicek(t, T, gamma, r_star, sigma)
     return -(A - B * r0) / tau
+
+# Forward 
 
 def forward_rate(t, T1, T2, r0, gamma, r_star, sigma):
     """Calculate continuously compounded forward rate f(r(t),t,T1,T2)"""
