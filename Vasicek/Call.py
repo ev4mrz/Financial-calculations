@@ -16,8 +16,6 @@ TB = 4
 K = 80
 N=100
 
-
-
 def B_vasicek(t, T, gamma_star):
     tau = T - t
     if gamma_star == 0:
@@ -56,3 +54,5 @@ def call_ZCB(t, T0, TB, gamma_star, r_star, sigma, r0, K, N):
     d2 = d1 - sigmaT
     put =  N * Z_TB * norm.cdf(d1)-K * Z_T0 * norm.cdf(d2)
     return put
+
+print(call_ZCB(t, T0, TB, gamma_star, r_star, sigma, r0, K, N))

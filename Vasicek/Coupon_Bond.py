@@ -55,6 +55,46 @@ def price_coupon_bond(discount_factors, maturity, coupon_rate, notional, frequen
     
     return bond_price
 
+def spot_rate_duration_ZC(t, maturity, gamma_star):
+    tau=maturity-t
+    if gamma_star == 0:
+        return tau
+    return (1 / gamma_star) * (1 - np.exp(-gamma_star * tau))
+
+
+def spot_rate_duration_CB(t, maturity, coupon_rate, notional, frequency,gamma_star):
+
+    maturities = np.arange(maturity, 0, -1/frequency)
+    maturities = maturities[::-1]
+    
+    n = len(maturities)
+    
+    discount_factors = np.array([
+        vasicek_price(t, T, gamma_star, r_star, sigma, r0)
+        for T in maturities
+    ])
+    
+    P = price_coupon_bond(discount_factors, maturity, coupon_rate, notional, frequency)
+    
+    periodic_coupon = (coupon_rate / frequency) * notional
+    
+    D_P = 0
+    
+    for i in range(n):
+        tau_i = maturities[i] - t
+        Z_i = discount_factors[i]
+        
+        if i < n - 1:
+            w_i = periodic_coupon * Z_i / P
+        else:
+            w_i = (periodic_coupon + notional) * Z_i / P
+        
+        D_Z_i = spot_rate_duration_ZC(tau_i, gamma_star)
+        
+        D_P += w_i * D_Z_i
+    
+    return D_P
+
 payment_time=np.arange(maturity,0,-1/frequency)
 payment_time = payment_time[::-1]
 
