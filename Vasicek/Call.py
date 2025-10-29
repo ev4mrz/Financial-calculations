@@ -4,16 +4,16 @@ from scipy.stats import norm
 from scipy.optimize import minimize
 
 # Vasicek Parameters
-gamma_star = 0.55
-r_star = 0.04
-sigma = 0.045
-r0 = 0.08
+gamma_star = 0.4653
+r_star = 0.0634
+sigma = 0.0221
+r0 = 0.016212
 
-# put parameters
+# call parameters
 t=0
 T0 = 1
-TB = 6
-K = 90
+TB = 4
+K = 80
 N=100
 
 
@@ -44,7 +44,7 @@ def sigmaT_vasicek(t, T0, TB, gamma_star, sigma):
     term = (1 - np.exp(-2 * gamma_star * tau)) / (2 * gamma_star)
     return sigma * np.sqrt(term) * B
 
-def call_price(t, T0, TB, gamma_star, r_star, sigma, r0, K, N):
+def call_ZCB(t, T0, TB, gamma_star, r_star, sigma, r0, K, N):
     sigmaT = sigmaT_vasicek(t, T0, TB, gamma_star, sigma)
     if sigmaT == 0:
         return 0.0
@@ -56,6 +56,3 @@ def call_price(t, T0, TB, gamma_star, r_star, sigma, r0, K, N):
     d2 = d1 - sigmaT
     put =  N * Z_TB * norm.cdf(d1)-K * Z_T0 * norm.cdf(d2)
     return put
-
-
-print (call_price(t, T0, TB, gamma_star, r_star, sigma, r0, K, N))

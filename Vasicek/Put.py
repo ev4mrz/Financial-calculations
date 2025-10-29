@@ -15,6 +15,7 @@ T0 = 1
 TB = 6
 K_range = np.arange(70, 101)
 N=100
+K=90
 
 
 
@@ -52,11 +53,12 @@ def put_price(t, T0, TB, gamma_star, r_star, sigma, r0, K, N):
     Z_TB = vasicek_price(t, TB, gamma_star, r_star, sigma, r0)
     Z_T0 = vasicek_price(t, T0, gamma_star, r_star, sigma, r0)
 
-    d1 = (np.log(Z_TB / (Z_T0 * K / N)) + 0.5 * sigmaT**2) / sigmaT
+    d1 = (np.log((N*Z_TB) / (Z_T0 * K)) + 0.5 * sigmaT**2) / sigmaT
     d2 = d1 - sigmaT
     put = K * Z_T0 * norm.cdf(-d2) - N * Z_TB * norm.cdf(-d1)
     return put
 
+print(put_price(t, T0, TB, gamma_star, r_star, sigma, r0, K, N))
 
 put_prices = np.array([
     put_price(t, T0, TB, gamma_star, r_star, sigma, r0, k, N) 
